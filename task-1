@@ -1,0 +1,73 @@
+import pandas as pd
+import pickle
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+data = pd.read_csv(r"D:\ml lab\sentiment_dataset_.csv.csv")
+
+# Show column names
+print("Columns:", data.columns)
+
+# Input and output
+X = data["review"]
+y = data["sentiment"]
+
+# Convert text into numbers
+vectorizer = TfidfVectorizer()
+
+X_vectorized = vectorizer.fit_transform(X)
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X_vectorized,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+# Create model
+model = LogisticRegression()
+
+# Train model
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+
+# Accuracy
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Model Accuracy:", accuracy)
+
+# Save model
+pickle.dump(model, open("model.pkl", "wb"))
+pickle.dump(vectorizer, open("vectorizer.pkl", "wb"))
+
+print("Model trained and saved successfully!")
+
+import pickle
+
+# Load saved model
+model = pickle.load(open("model.pkl", "rb"))
+vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+
+print("=== Sentiment Analysis Tool ===")
+
+while True:
+
+    text = input("\nEnter a review (or type exit): ")
+
+    if text.lower() == "exit":
+        break
+
+    # Transform text
+    text_vector = vectorizer.transform([text])
+
+    # Predict sentiment
+    prediction = model.predict(text_vector)
+
+    print("Predicted Sentiment:", prediction[0])
